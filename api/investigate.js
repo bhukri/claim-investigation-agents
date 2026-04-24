@@ -6,27 +6,14 @@ const FRAUD_SYSTEM_PROMPT = `You are a senior insurance fraud investigator with 
 
 const SETTLEMENT_SYSTEM_PROMPT = `You are a senior claims settlement specialist. You receive the original claim description, structured intake data, and fraud investigation results. Your job is to recommend a settlement approach. Always respond in valid JSON with these exact fields: recommended_action (one of: Approve for Fast Track/Assign to Handler/Request Additional Information/Enhanced Investigation/Refer to Legal/Decline), priority_level (Critical/High/Standard/Low), estimated_complexity (Simple/Moderate/Complex/Highly Complex), required_documents (array of documents needed), recommended_next_steps (array of specific next steps in order), special_considerations (array of anything unusual requiring attention, empty array if none), settlement_timeline_estimate (string like '5-7 business days'), handler_notes (plain English paragraph summarising everything for the claims handler). Nothing else — only valid JSON.`;
 
-async function runAgent(client, systemPrompt, userContent, agentNum, sendEvent) {
-  let fullText = '';
-
-  const stream = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1500,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: userContent }],
-    stream: true,
-  });
-
-  for await (const event of stream) {
-    if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-      fullText += event.delta.text;
-      sendEvent({ type: 'agent_chunk', agent: agentNum, content: event.delta.text });
-    }
+function parseAgentJSON(raw, agentName) {
+  const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    // Output was truncated mid-JSON (max_tokens hit) — surface a clear message
+    throw new Error(`${agentName} response was truncated before the JSON could be completed. Try again.`);
   }
-
-  // Strip markdown code fences if model wraps the JSON
-  const cleaned = fullText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
-  return JSON.parse(cleaned);
 }
 
 export default async function handler(req, res) {
@@ -70,7 +57,7 @@ export default async function handler(req, res) {
     let agent1Text = '';
     const agent1Stream = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1500,
+      max_tokens: 2048,
       system: INTAKE_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: claimDescription }],
       stream: true,
@@ -81,9 +68,8 @@ export default async function handler(req, res) {
         sendEvent({ type: 'agent_chunk', agent: 1, content: event.delta.text });
       }
     }
-    const agent1Cleaned = agent1Text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
-    agent1Result = JSON.parse(agent1Cleaned);
-    agent1Raw = agent1Cleaned;
+    agent1Result = parseAgentJSON(agent1Text, 'Intake Agent');
+    agent1Raw = agent1Text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
     sendEvent({ type: 'agent_complete', agent: 1, result: agent1Result });
 
     // Agent 2 — Fraud Detection
@@ -94,7 +80,7 @@ export default async function handler(req, res) {
     const agent2Prompt = `Original claim description:\n${claimDescription}\n\nIntake analysis result:\n${agent1Raw}`;
     const agent2Stream = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1500,
+      max_tokens: 2048,
       system: FRAUD_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: agent2Prompt }],
       stream: true,
@@ -105,9 +91,8 @@ export default async function handler(req, res) {
         sendEvent({ type: 'agent_chunk', agent: 2, content: event.delta.text });
       }
     }
-    const agent2Cleaned = agent2Text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
-    agent2Result = JSON.parse(agent2Cleaned);
-    agent2Raw = agent2Cleaned;
+    agent2Result = parseAgentJSON(agent2Text, 'Fraud Detection Agent');
+    agent2Raw = agent2Text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
     sendEvent({ type: 'agent_complete', agent: 2, result: agent2Result });
 
     // Agent 3 — Settlement
@@ -118,7 +103,7 @@ export default async function handler(req, res) {
     const agent3Prompt = `Original claim description:\n${claimDescription}\n\nIntake analysis:\n${agent1Raw}\n\nFraud investigation:\n${agent2Raw}`;
     const agent3Stream = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1500,
+      max_tokens: 4096,
       system: SETTLEMENT_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: agent3Prompt }],
       stream: true,
@@ -129,8 +114,7 @@ export default async function handler(req, res) {
         sendEvent({ type: 'agent_chunk', agent: 3, content: event.delta.text });
       }
     }
-    const agent3Cleaned = agent3Text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
-    agent3Result = JSON.parse(agent3Cleaned);
+    agent3Result = parseAgentJSON(agent3Text, 'Settlement Agent');
     sendEvent({ type: 'agent_complete', agent: 3, result: agent3Result });
 
     sendEvent({ type: 'complete' });
