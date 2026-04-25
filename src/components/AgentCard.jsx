@@ -113,11 +113,35 @@ function actionColor(action) {
   return 'blue';
 }
 
+function validationColor(status) {
+  if (!status) return 'gray';
+  const s = status.toLowerCase();
+  if (s === 'pass') return 'green';
+  if (s === 'needs review') return 'amber';
+  return 'red';
+}
+
 // ── Intake Result ──────────────────────────────────────────────
 function IntakeResult({ result }) {
   return (
     <div>
       <div className="result-grid">
+        <div className="result-item">
+          <div className="result-item-label">Validation Status</div>
+          <div className="result-item-value">
+            <span className={`result-badge ${validationColor(result.validation_status)}`}>
+              {result.validation_status}
+            </span>
+          </div>
+        </div>
+        <div className="result-item">
+          <div className="result-item-label">Data Completeness</div>
+          <div className="result-item-value">
+            <span className={`result-badge ${result.data_completeness === 'High' ? 'green' : result.data_completeness === 'Medium' ? 'amber' : 'red'}`}>
+              {result.data_completeness}
+            </span>
+          </div>
+        </div>
         <div className="result-item">
           <div className="result-item-label">Claim Type</div>
           <div className="result-item-value">
@@ -140,24 +164,32 @@ function IntakeResult({ result }) {
           <div className="result-item-label">Injuries</div>
           <div className="result-item-value"><BoolChip value={result.injuries_reported} /></div>
         </div>
-        <div className="result-item">
-          <div className="result-item-label">Date Mentioned</div>
-          <div className="result-item-value"><BoolChip value={result.incident_date_mentioned} /></div>
-        </div>
-        <div className="result-item">
-          <div className="result-item-label">Third Party</div>
-          <div className="result-item-value"><BoolChip value={result.third_party_involved} /></div>
-        </div>
         <div className="result-item result-full">
           <div className="result-item-label">Summary</div>
           <div className="result-summary-text">{result.claim_summary}</div>
         </div>
       </div>
-      {result.missing_information?.length > 0 && (
+      {result.inconsistencies?.length > 0 && (
         <>
-          <div className="result-section-title">Missing Information</div>
+          <div className="result-section-title" style={{ color: 'var(--red)' }}>Inconsistencies</div>
           <ul className="result-list">
-            {result.missing_information.map((item, i) => <li key={i}>{item}</li>)}
+            {result.inconsistencies.map((item, i) => <li key={i}>{item}</li>)}
+          </ul>
+        </>
+      )}
+      {result.missing_critical_fields?.length > 0 && (
+        <>
+          <div className="result-section-title" style={{ color: 'var(--amber)' }}>Missing Critical Fields</div>
+          <ul className="result-list">
+            {result.missing_critical_fields.map((item, i) => <li key={i}>{item}</li>)}
+          </ul>
+        </>
+      )}
+      {result.recommended_verifications?.length > 0 && (
+        <>
+          <div className="result-section-title">Recommended Verifications</div>
+          <ul className="result-list">
+            {result.recommended_verifications.map((item, i) => <li key={i}>{item}</li>)}
           </ul>
         </>
       )}

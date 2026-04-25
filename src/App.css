@@ -943,6 +943,157 @@ body {
   .report-grid { grid-template-columns: 1fr; }
 }
 
+/* ── FNOL Form ────────────────────────────────────────────────── */
+.fnol-form {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.fnol-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0 14px;
+}
+
+.fnol-section-header:first-child { margin-top: 0; }
+
+.fnol-section-num {
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: var(--mono);
+  color: var(--blue);
+  background: var(--blue-dim);
+  border: 1px solid rgba(59,130,246,0.25);
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.fnol-section-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.fnol-section-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.fnol-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+}
+
+.fnol-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fnol-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.fnol-required {
+  color: var(--red);
+  margin-left: 2px;
+}
+
+.fnol-input {
+  width: 100%;
+  padding: 8px 11px;
+  background: #0a1628;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.fnol-input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--blue-dim);
+}
+
+.fnol-input::placeholder { color: var(--text-muted); }
+.fnol-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.fnol-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+  cursor: pointer;
+}
+
+.fnol-select option { background: #111d33; color: var(--text); }
+
+.fnol-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.6;
+}
+
+/* Toggle yes/no */
+.fnol-toggle-group {
+  display: flex;
+  gap: 6px;
+}
+
+.fnol-toggle {
+  flex: 1;
+  padding: 7px 0;
+  background: #0a1628;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.fnol-toggle:hover:not(:disabled) {
+  border-color: var(--border-light);
+  color: var(--text);
+}
+
+.fnol-toggle.active {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.fnol-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 700px) {
+  .fnol-grid-2 { grid-template-columns: 1fr; }
+  .fnol-form { padding: 16px; }
+}
+
 @media (max-width: 600px) {
   .app { padding: 0 16px 60px; }
   .header { flex-wrap: wrap; }

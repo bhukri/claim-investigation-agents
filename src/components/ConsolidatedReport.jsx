@@ -149,26 +149,38 @@ export default function ConsolidatedReport({ intake, fraud, settlement }) {
         {/* Claim Summary */}
         <div className="report-card">
           <div className="report-card-title">
-            <IconDoc size={12} /> Claim Summary
+            <IconDoc size={12} /> Intake Validation Summary
           </div>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', lineHeight: 1.7, marginBottom: 12, fontStyle: 'italic' }}>
             {intake.claim_summary}
           </p>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
             <span className="result-badge blue" style={{ textTransform: 'capitalize' }}>{intake.claim_type}</span>
             {intake.injuries_reported && <span className="result-badge red">Injuries Reported</span>}
             {intake.police_report_mentioned && <span className="result-badge green">Police Report</span>}
             {intake.third_party_involved && <span className="result-badge amber">Third Party</span>}
-            <span className={`result-badge ${intake.intake_confidence === 'High' ? 'green' : intake.intake_confidence === 'Medium' ? 'amber' : 'red'}`}>
-              {intake.intake_confidence} Confidence
+            <span className={`result-badge ${intake.validation_status === 'Pass' ? 'green' : intake.validation_status === 'Needs Review' ? 'amber' : 'red'}`}>
+              {intake.validation_status}
             </span>
           </div>
-          {intake.missing_information?.length > 0 && (
-            <div style={{ marginTop: 12 }}>
-              <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--amber)', marginBottom: 6 }}>
-                Missing Information
+          {intake.inconsistencies?.length > 0 && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--red)', marginBottom: 6 }}>
+                Inconsistencies
               </div>
-              {intake.missing_information.map((item, i) => (
+              {intake.inconsistencies.map((item, i) => (
+                <div key={i} className="special-item" style={{ background: 'var(--red-dim)', borderColor: 'rgba(239,68,68,0.3)', color: 'var(--red)', marginBottom: 4 }}>
+                  <IconWarning size={12} /> {item}
+                </div>
+              ))}
+            </div>
+          )}
+          {intake.missing_critical_fields?.length > 0 && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--amber)', marginBottom: 6 }}>
+                Missing Critical Fields
+              </div>
+              {intake.missing_critical_fields.map((item, i) => (
                 <div key={i} className="special-item" style={{ background: 'var(--amber-dim)', borderColor: 'rgba(245,158,11,0.3)', color: 'var(--amber)', marginBottom: 4 }}>
                   <IconWarning size={12} /> {item}
                 </div>
